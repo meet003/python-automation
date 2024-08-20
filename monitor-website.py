@@ -7,10 +7,11 @@ import boto3
 import time
 import schedule
 from dotenv import load_dotenv
+from cryptography.utils import CryptographyDeprecationWarning
 load_dotenv()
 
 # Suppress specific warnings
-warnings.filterwarnings(action='ignore', category=DeprecationWarning)
+warnings.filterwarnings(action='ignore', category=CryptographyDeprecationWarning)
 
 EMAIL_ADDRESS = os.getenv('EMAIL_ADDRESS')
 PASSWORD = os.getenv('PASSWORD')
@@ -27,7 +28,7 @@ def send_notification(email_msg):
             smtp.starttls()
             smtp.ehlo()
             smtp.login(EMAIL_ADDRESS ,PASSWORD)
-            message = "Subject: SITE DOWN\n\n{email_msg}"
+            message = f"Subject: SITE DOWN\n\n{email_msg}"
             smtp.sendmail(EMAIL_ADDRESS ,EMAIL_ADDRESS ,message)
 
 def restart_application():
@@ -64,20 +65,19 @@ def restart_server_and_container():
 
 # def monitor_application():
 try:
-    response = requests.get('http://{IP_ADDRESS}:8080/')
+    url = f'http://{IP_ADDRESS}:8080/'
+    response = requests.get(url)
+    
     # print(response.text)
-    if response.status_code== 200:
+    if response.status_code == 200:
         print('Application is running successfully!')
     else:
-        print('application down')
+        print('Application down')
         #send email to me 
-        msg = f'Application is down {response.status_code}'
+        msg = f'Application is down '
         send_notification(msg)
         restart_application()
-
-        
-
-        
+      
 except Exception as ex:
     print(f'connection  error  happened: {ex}')
     msg = f'Application is accessible to all'
